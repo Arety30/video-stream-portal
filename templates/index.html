@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A secure, premium portal for streaming private video assets via encrypted Cloudflare tunnels. Supports custom sources and interactive neon UI themes.">
+    <title>Abrar AI Stream Gateway</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-gradient: radial-gradient(circle at 50% 50%, #161b33 0%, #0b0c10 100%);
+            --card-bg: rgba(22, 27, 34, 0.75);
+            --primary: #58a6ff;
+            --primary-glow: rgba(88, 166, 255, 0.4);
+            --secondary: #d2a8ff;
+            --secondary-glow: rgba(210, 168, 255, 0.4);
+            --text-main: #f0f6fc;
+            --text-muted: #8b949e;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-green: #39d353;
+            --font-sans: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .theme-cyberpunk {
+            --bg-gradient: linear-gradient(135deg, #120136 0%, #03001e 50%, #7303c0 100%);
+            --card-bg: rgba(10, 2, 22, 0.8);
+            --primary: #ff007f;
+            --primary-glow: rgba(255, 0, 127, 0.5);
+            --secondary: #00f0ff;
+            --secondary-glow: rgba(0, 240, 255, 0.5);
+            --border-color: rgba(255, 0, 127, 0.2);
+        }
+
+        .theme-matrix {
+            --bg-gradient: radial-gradient(circle at 50% 50%, #0d1f10 0%, #020202 100%);
+            --card-bg: rgba(5, 15, 8, 0.85);
+            --primary: #00ff66;
+            --primary-glow: rgba(0, 255, 102, 0.4);
+            --secondary: #00aa33;
+            --secondary-glow: rgba(0, 170, 51, 0.4);
+            --border-color: rgba(0, 255, 102, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 1rem;
+            overflow-x: hidden;
+            transition: var(--transition);
+        }
+
+        header {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            color: var(--primary);
+            filter: drop-shadow(0 0 8px var(--primary-glow));
+            animation: pulseGlow 3s infinite ease-in-out;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(88, 166, 255, 0.1);
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 0.25rem;
+            border-radius: 30px;
+        }
+
+        .theme-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .theme-btn.active {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .theme-btn:hover:not(.active) {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        main {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            flex-grow: 1;
+            align-content: center;
+            animation: fadeIn 1s ease;
+        }
+
+        @media (min-width: 900px) {
+            main {
+                grid-template-columns: 3fr 1.2fr;
+            }
+        }
+
+        .player-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.25rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .player-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 
+                        0 0 30px rgba(88, 166, 255, 0.05);
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            overflow: hidden;
+            border-radius: 12px;
+            background: #000;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0.25rem 0 0.25rem;
+        }
+
+        .video-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .badge-live {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: rgba(57, 211, 83, 0.15);
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.6rem;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-live .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulseGlow 1.5s infinite;
+        }
+
+        .control-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            height: fit-content;
+        }
+
+        .panel-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .input-field {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.8rem 1rem;
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary-glow);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 10px;
+            padding: 0.8rem;
+            color: #000;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px var(--primary-glow);
+            transition: var(--transition);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--primary-glow);
+            filter: brightness(1.1);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .presets-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .preset-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: var(--text-main);
+            font-size: 0.85rem;
+            text-align: left;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .preset-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary);
+        }
+
+        .preset-btn.active {
+            background: rgba(88, 166, 255, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .preset-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preset-name {
+            font-weight: 600;
+        }
+
+        .preset-desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .tunnel-info {
+            background: rgba(88, 166, 255, 0.05);
+            border: 1px dashed var(--primary);
+            border-radius: 12px;
+            padding: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .tunnel-title {
+            color: var(--primary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .tunnel-url {
+            font-family: var(--font-mono);
+            background: rgba(0, 0, 0, 0.4);
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            color: var(--text-main);
+            word-break: break-all;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .copy-btn:hover {
+            color: var(--primary);
+        }
+
+        footer {
+            margin-top: 3rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .footer-link {
+            color: var(--primary);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% {
+                opacity: 0.6;
+                box-shadow: 0 0 10px var(--primary-glow);
+            }
+            50% {
+                opacity: 1;
+                box-shadow: 0 0 20px var(--primary-glow);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-container">
+            <i data-lucide="video" class="logo-icon"></i>
+            <h1>Abrar Stream Portal</h1>
+        </div>
+        <div class="theme-selector">
+            <button class="theme-btn active" onclick="setTheme('default')" title="Midnight Theme">
+                <i data-lucide="moon"></i>
+            </button>
+            <button class="theme-btn" onclick="setTheme('cyberpunk')" title="Cyberpunk Theme">
+                <i data-lucide="zap"></i>
+            </button>
+            <button class="theme-btn" onclick="setTheme('matrix')" title="Matrix Theme">
+                <i data-lucide="terminal"></i>
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <div class="player-card">
+            <div class="video-container">
+                <iframe id="videoPlayer" src="https://drive.google.com/FILE" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>
+            </div>
+            <div class="player-info">
+                <div class="video-title" id="currentPlayerTitle">Shared Google Drive Video</div>
+                <div class="badge-live">
+                    <span class="dot"></span>
+                    <span>Live Secure Tunnel</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="control-panel">
+            <div class="panel-section">
+                <div class="section-title">
+                    <i data-lucide="settings"></i>
+                    <span>Control Panel</span>
+                </div>
+                <div class="input-group">
+                    <label for="videoUrlInput" style="font-size: 0.8rem; color: var(--text-muted);">Drive File ID or Video URL</label>
+                    <input type="text" id="videoUrlInput" class="input-field" placeholder="Enter File ID or URL..." value="4/0AdkVLPz7r0a6JdlXhVaQvxaAu154nITygW5FIhL2xkQsMzeKFjm8xWX1BgXW5C_AZjzAfQ">
+                    <button class="btn-submit" onclick="loadCustomVideo()">
+                        <i data-lucide="play"></i>
+                        <span>Stream Video</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="section-title">
+                    <i data-lucide="list-video"></i>
+                    <span>Presets</span>
+                </div>
+                <div class="presets-grid">
+                    <button class="preset-btn active" onclick="loadPreset('4/0AdkVLPz7r0a6JdlXhVaQvxaAu154nITygW5FIhL2xkQsMzeKFjm8xWX1BgXW5C_AZjzAfQ', 'Google Drive Shared Video', this)">
+                        <i data-lucide="cloud"></i>
+                        <div class="preset-info">
+                            <span class="preset-name">User Shared Video</span>
+                            <span class="preset-desc">Google Drive Default</span>
+                        </div>
+                    </button>
+                    <button class="preset-btn" onclick="loadPreset('GOOGLE_FILE_ID', 'Big Buck Bunny (Sample)', this)">
+                        <i data-lucide="film"></i>
+                        <div class="preset-info">
+                            <span class="preset-name">Big Buck Bunny</span>
+                            <span class="preset-desc">Sample Drive Video</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="tunnel-info">
+                    <span class="tunnel-title">
+                        <i data-lucide="shield-check"></i>
+                        <span>Secure Connection</span>
+                    </span>
+                    <span style="font-size: 0.75rem;">This portal is exposed via a secure Cloudflare Tunnel. Share the URL below to grant encrypted access:</span>
+                    <div class="tunnel-url">
+                        <span id="tunnelUrlSpan">detecting tunnel...</span>
+                        <button class="copy-btn" onclick="copyTunnelUrl()" title="Copy Link">
+                            <i data-lucide="copy" style="width: 14px; height: 14px;"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <span>Powered by Apache & Cloudflare Tunnel</span>
+        <span>•</span>
+        <span>Hosted locally on HOST</span>
+    </footer>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Detect Tunnel Hostname
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentHost = window.location.origin;
+            document.getElementById('tunnelUrlSpan').innerText = currentHost + window.location.pathname;
+        });
+
+        // Theme Selection
+        function setTheme(theme) {
+            document.body.classList.remove('theme-cyberpunk', 'theme-matrix');
+            
+            // Remove active classes
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            
+            if (theme === 'cyberpunk') {
+                document.body.classList.add('theme-cyberpunk');
+                event.currentTarget.classList.add('active');
+            } else if (theme === 'matrix') {
+                document.body.classList.add('theme-matrix');
+                event.currentTarget.classList.add('active');
+            } else {
+                event.currentTarget.classList.add('active');
+            }
+        }
+
+        // Load Preset Video
+        function loadPreset(idOrUrl, name, element) {
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            document.getElementById('videoUrlInput').value = idOrUrl;
+            
+            updatePlayer(idOrUrl, name);
+        }
+
+        // Load Custom Input Video
+        function loadCustomVideo() {
+            const val = document.getElementById('videoUrlInput').value.trim();
+            if (!val) return;
+            
+            // De-select presets
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+            
+            if (val.includes('drive.google.com')) {
+                updatePlayer(val, 'Custom Drive URL');
+            } else if (val.includes('youtube.com') || val.includes('youtu.be')) {
+                updatePlayer(val, 'Custom YouTube URL');
+            } else if (val.length > 20 && !val.includes('/')) {
+                // Assume google drive ID
+                updatePlayer(val, 'Custom Drive File ID');
+            } else {
+                updatePlayer(val, 'Custom Video Source');
+            }
+        }
+
+        // Helper to update player source
+        function updatePlayer(source, title) {
+            const player = document.getElementById('videoPlayer');
+            const titleEl = document.getElementById('currentPlayerTitle');
+            
+            let targetUrl = source;
+            
+            // If it is just a Google Drive ID
+            if (!source.startsWith('http') && !source.includes('/')) {
+                targetUrl = `https://drive.google.com/FILE
+            } else if (source.startsWith('4/') || (source.length > 30 && source.includes('/'))) {
+                // If it is the user's specific oauth code or unique path identifier
+                targetUrl = `https://drive.google.com/FILE
+            } else if (source.includes('drive.google.com')) {
+                // If it's a full drive url, convert to preview
+                if (source.includes('/view')) {
+                    targetUrl = source.replace('/view', '/preview');
+                } else if (!source.includes('/preview')) {
+                    targetUrl = source + (source.endsWith('/') ? 'preview' : '/preview');
+                }
+            } else if (source.includes('youtube.com/watch')) {
+                const urlParams = new URLSearchParams(new URL(source).search);
+                const v = urlParams.get('v');
+                if (v) targetUrl = `https://www.youtube.com/embed/${v}`;
+            } else if (source.includes('youtu.be/')) {
+                const parts = source.split('youtu.be/');
+                if (parts[1]) {
+                    const videoId = parts[1].split('?')[0];
+                    targetUrl = `https://www.youtube.com/embed/${videoId}`;
+                }
+            }
+            
+            player.src = targetUrl;
+            titleEl.innerText = title;
+        }
+
+        // Copy Tunnel URL to Clipboard
+        function copyTunnelUrl() {
+            const urlText = document.getElementById('tunnelUrlSpan').innerText;
+            navigator.clipboard.writeText(urlText).then(() => {
+                alert('Connection URL copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+    </script>
+</body>
+</html>
